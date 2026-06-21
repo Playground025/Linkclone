@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linkclone</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #121212; 
+            color: #ffffff; 
+            display: flex; 
+            justify-content: center; 
+            padding-top: 60px;
+            margin: 0;
+        }
+        .container { 
+            background: #1e1e1e; 
+            padding: 35px; 
+            border-radius: 12px; 
+            width: 520px; 
+            box-shadow: 0 8px 32px rgba(0,0,0,0.7); 
+            text-align: center;
+        }
+        h2 { 
+            color: #00ecff; 
+            margin-top: 0;
+            font-size: 26px;
+            letter-spacing: 1px;
+        }
+        .info-box {
+            background: #252525;
+            border-left: 4px solid #00ecff;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #b3b3b3;
+            margin-bottom: 20px;
+            text-align: left;
+            line-height: 1.5;
+        }
+        input { 
+            width: 100%; 
+            padding: 14px; 
+            box-sizing: border-box; 
+            background: #2b2b2b; 
+            color: #fff; 
+            border: 1px solid #3b3b3b; 
+            border-radius: 6px; 
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        input:focus {
+            outline: none;
+            border-color: #00ecff;
+        }
+        button { 
+            width: 100%; 
+            padding: 14px; 
+            background: #00ecff; 
+            color: #121212; 
+            border: none; 
+            border-radius: 6px; 
+            font-weight: bold; 
+            font-size: 15px;
+            cursor: pointer; 
+            transition: background 0.2s, transform 0.1s;
+        }
+        button:hover { background: #00b9cc; }
+        button:active { transform: scale(0.99); }
+        .track-item { 
+            background: #2a2a2a; 
+            padding: 15px; 
+            margin-top: 15px; 
+            border-radius: 6px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border: 1px solid #333;
+        }
+        .title { 
+            font-size: 14px; 
+            max-width: 65%; 
+            text-align: left; 
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .btn-group { display: flex; gap: 8px; }
+        .btn-down { 
+            padding: 8px 16px; 
+            font-size: 13px; 
+            border-radius: 4px; 
+            text-decoration: none; 
+            font-weight: bold; 
+            transition: opacity 0.2s;
+        }
+        .btn-down:hover { opacity: 0.85; }
+        .mp3 { background: #e91e63; color: white; }
+        .mp4 { background: #4caf50; color: white; }
+        #statusMessage { margin-top: 15px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>LINKCLONE</h1> 
+    <h4>online media downloader</h4>
+    
+    <div class="info-box">
+        💡 <strong>Supported features:</strong><br>
+        • Single video links and Playlist URLs are fully supported.<br>
+        • <strong>Audio Quality:</strong> Always extracted at maximum 320 kbps MP3.<br>
+        • <strong>Video Quality:</strong> Locked at maximum 720p HD for optimal and instant server performance.
+    </div>
+
+    <input type="text" id="urlInput" placeholder="Paste YouTube video or playlist URL here...">
+    <button onclick="analyzeLink()">Analyze Link</button>
+
+    <div id="statusMessage"></div>
+    <div id="trackList"></div>
+</div>
+
+<script>
+async function analyzeLink() {
+    const url = document.getElementById('urlInput').value.trim();
+    const trackListDiv = document.getElementById('trackList');
+    const statusMessage = document.getElementById('statusMessage');
+    
+    if(!url) {
+        alert('Please paste a valid YouTube URL!');
+        return;
+    }
+
+    trackListDiv.innerHTML = '';
+    statusMessage.style.color = '#00ecff';
+    statusMessage.innerText = 'Fetching data from YouTube... Please wait.';
+
+    try {
+        const res = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url })
+        });
+        const data = await res.json();
+
+        if(data.error) {
+            statusMessage.style.color = '#ff4444';
+            statusMessage.innerText = data.error;
+            return;
+        }
+
+        statusMessage.innerText = '';
+
+        data.tracks.forEach(track => {
+            const item = document.createElement('div');
+            item.className = 'track-item';
+            item.innerHTML = `
+                <div class="title" title="${track.title}">${track.title}</div>
+                <div class="btn-group">
+                    <a class="btn-down mp3" href="/download-mp3?url=${encodeURIComponent(track.url)}">Get MP3</a>
+                    <a class="btn-down mp4" href="/download-mp4?url=${encodeURIComponent(track.url)}">Get MP4</a>
+                </div>
+            `;
+            trackListDiv.appendChild(item);
+        });
+
+    } catch (err) {
+        statusMessage.style.color = '#ff4444';
+        statusMessage.innerText = 'Server connection error. Please try again.';
+    }
+}
+</script>
+
+</body>
+</html>
