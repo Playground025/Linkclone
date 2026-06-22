@@ -24,16 +24,25 @@ app.post('/api/analyze', async (req, res) => {
     }
 
     try {
-        const resApi = await fetch(`https://invidious.io.lol/api/v1/videos/${videoId}`);
-        if (!resApi.ok) throw new Error();
-        const data = await resApi.json();
+        const response = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            }
+        });
+        const html = await response.text();
+        
+        let title = 'YouTube Audio Track';
+        const titleMatch = html.match(/<title>(.*?)<\/title>/);
+        if (titleMatch && titleMatch[1]) {
+            title = titleMatch[1].replace('- YouTube', '').trim();
+        }
 
         return res.json({ 
             type: 'single', 
-            tracks: [{ url: url, videoId: videoId, title: data.title }] 
+            tracks: [{ url: url, videoId: videoId, title: title }] 
         });
     } catch (err) {
-        return res.status(500).json({ error: 'Failed to analyze the link. Please try another video.' });
+        return res.status(500).json({ error: 'Failed to parse video data. Try again.' });
     }
 });
 
@@ -42,23 +51,33 @@ app.get('/download-mp3', async (req, res) => {
     if (!videoId) return res.status(400).send('Invalid Video ID');
 
     try {
-        const resApi = await fetch(`https://invidious.io.lol/api/v1/videos/${videoId}`);
-        if (!resApi.ok) throw new Error();
-        const data = await resApi.json();
-        const title = data.title.replace(/[\\/:*?"<>|]/g, "");
+        const titleResponse = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
+            headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
+        const html = await titleResponse.text();
+        let title = 'audio';
+        const titleMatch = html.match(/<title>(.*?)<\/title>/);
+        if (titleMatch && titleMatch[1]) {
+            title = titleMatch[1].replace('- YouTube', '').trim().replace(/[\\/:*?"<>|]/g, "");
+        }
 
         res.header('Content-Disposition', `attachment; filename="${title}.mp3"`);
         res.header('Content-Type', 'audio/mpeg');
 
-        const audioUrl = `https://invidious.io.lol/latest_version?id=${videoId}&itag=140`;
+        const streamUrl = `https://rr1---sn-axq7sn7s.googlevideo.com/videoplayback?expire=1700000000&ei=123&ip=0.0.0.0&id=${videoId}&itag=140&source=youtube&requiressl=yes&vprv=1&ratebypass=yes&live=0`;
+        const fallbackUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
-        ffmpeg(audioUrl)
+        ffmpeg(fallbackUrl)
+            .inputOptions([
+                '-agent_user_agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"',
+                '-headers "Referer: https://www.youtube.com/"'
+            ])
             .audioBitrate(320)
             .toFormat('mp3')
-            .on('error', (err) => console.log('FFmpeg Error:', err.message))
+            .on('error', (err) => console.log('FFmpeg stream error:', err.message))
             .pipe(res);
     } catch (err) {
-        res.status(500).send('Error processing MP3 audio.');
+        res.status(500).send('Error processing MP3.');
     }
 });
 
