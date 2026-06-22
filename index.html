@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Linkclone</title>
+    <title>High-Quality MP3 Downloader</title>
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -80,41 +80,38 @@
         }
         .title { 
             font-size: 14px; 
-            max-width: 65%; 
+            max-width: 70%; 
             text-align: left; 
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .btn-group { display: flex; gap: 8px; }
         .btn-down { 
-            padding: 8px 16px; 
+            padding: 8px 20px; 
             font-size: 13px; 
             border-radius: 4px; 
             text-decoration: none; 
             font-weight: bold; 
+            background: #e91e63; 
+            color: white;
             transition: opacity 0.2s;
         }
         .btn-down:hover { opacity: 0.85; }
-        .mp3 { background: #e91e63; color: white; }
-        .mp4 { background: #4caf50; color: white; }
         #statusMessage { margin-top: 15px; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>LINKCLONE</h1> 
-    <h4>online media downloader</h4>
+    <h2>Audio Stream Downloader 🚀</h2>
     
     <div class="info-box">
         💡 <strong>Supported features:</strong><br>
-        • Single video links and Playlist URLs are fully supported.<br>
-        • <strong>Audio Quality:</strong> Always extracted at maximum 320 kbps MP3.<br>
-        • <strong>Video Quality:</strong> Locked at maximum 720p HD for optimal and instant server performance.
+        • Single tracks and Playlist track parsing.<br>
+        • <strong>Audio Quality:</strong> Guaranteed extraction at maximum 320 kbps MP3 format.
     </div>
 
-    <input type="text" id="urlInput" placeholder="Paste YouTube video or playlist URL here...">
+    <input type="text" id="urlInput" placeholder="Paste YouTube link here...">
     <button onclick="analyzeLink()">Analyze Link</button>
 
     <div id="statusMessage"></div>
@@ -128,13 +125,13 @@ async function analyzeLink() {
     const statusMessage = document.getElementById('statusMessage');
     
     if(!url) {
-        alert('Please paste a valid YouTube URL!');
+        alert('Please paste a valid URL!');
         return;
     }
 
     trackListDiv.innerHTML = '';
     statusMessage.style.color = '#00ecff';
-    statusMessage.innerText = 'Fetching data from YouTube... Please wait.';
+    statusMessage.innerText = 'Analyzing audio stream... Please wait.';
 
     try {
         const res = await fetch('/api/analyze', {
@@ -157,17 +154,14 @@ async function analyzeLink() {
             item.className = 'track-item';
             item.innerHTML = `
                 <div class="title" title="${track.title}">${track.title}</div>
-                <div class="btn-group">
-                    <a class="btn-down mp3" href="/download-mp3?url=${encodeURIComponent(track.url)}">Get MP3</a>
-                    <a class="btn-down mp4" href="/download-mp4?url=${encodeURIComponent(track.url)}">Get MP4</a>
-                </div>
+                <a class="btn-down" href="/download-mp3?id=${track.videoId}">Get MP3</a>
             `;
             trackListDiv.appendChild(item);
         });
 
     } catch (err) {
         statusMessage.style.color = '#ff4444';
-        statusMessage.innerText = 'Server connection error. Please try again.';
+        statusMessage.innerText = 'Connection error. Please try again.';
     }
 }
 </script>
