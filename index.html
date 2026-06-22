@@ -107,7 +107,7 @@
     
     <div class="info-box">
         💡 <strong>Supported features:</strong><br>
-        • Single tracks and Playlist links.<br>
+        • High-speed single track audio processing.<br>
         • <strong>Audio Quality:</strong> Guaranteed extraction at maximum 320 kbps MP3 format.
     </div>
 
@@ -131,7 +131,7 @@ async function analyzeLink() {
 
     trackListDiv.innerHTML = '';
     statusMessage.style.color = '#00ecff';
-    statusMessage.innerText = 'Analyzing audio stream... Please wait.';
+    statusMessage.innerText = 'Processing audio stream... Please wait.';
 
     try {
         const res = await fetch('/api/analyze', {
@@ -154,7 +154,7 @@ async function analyzeLink() {
             item.className = 'track-item';
             item.innerHTML = `
                 <div class="title" title="${track.title}">${track.title}</div>
-                <a class="btn-down" href="/download-mp3?id=${track.videoId}">Get MP3</a>
+                <a class="btn-down" href="${track.downloadUrl}" target="_blank" download>Get MP3</a>
             `;
             trackListDiv.appendChild(item);
         });
