@@ -6,7 +6,7 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "@distube/ytdl-core": "^4.13.5",
+    "@distube/ytdl-core": "latest",
     "express": "^4.19.2",
     "fluent-ffmpeg": "^2.1.3"
   }
